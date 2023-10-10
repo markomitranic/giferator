@@ -1,6 +1,6 @@
 # Giferator
 
-This project was created for Catena Media, and later NoA Ignite Denmark, as an easy way for designers to resize and optimize Gifs used in products.
+This project was created in 2017 for Catena Media, and later updated in 2023 for NoA Ignite Denmark, as an easy way for designers to resize and optimize Gifs used in products.
 
 I tend to forget how it works, so I wrote an explainer a while ago [Compressing animated gifs in PHP](https://medium.com/homullus/compressing-animated-gifs-with-php-e26e655ec3e0)
 
