@@ -18,7 +18,18 @@ Compression algorhythm uses a few steps in order to make image smaller without c
 Via FFMPEG, static frames are made transparent, a color palette is calculated for each gif separately.
 Both Gifsicle level 3 and ImageOptim are used for final compression and metadata removal.
 
-# Building the Application
+# Development
+
+The easiest way to use it during development is to invoke the shell script directly:
+
+```shell
+$ cd src
+$ ./giferator.sh ../demo/Himmelskibet.gif
+```
+
+This allows us to change the script on-the-fly. Alternatively we can build the application every time we make a change, or use Platypus' option "Bundle as symlinks" during export, but that is still experimental.
+
+## Building the Application
 
 We use [Platypus](https://sveinbjorn.org/platypus) to bundle a simple shell script `src/giferator.sh` and its vendor dependencies. The vendor dependencies are managed manually by downloading them from `brew` or developer (in case of ImageOptim).
 

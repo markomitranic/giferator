@@ -12,7 +12,7 @@
 	<string>Marko Mitranic</string>
 	<key>BundledFiles</key>
 	<array>
-		<string>/Users/markomitranic/Sites/noa/tivoli-giferator/src/vendor</string>
+		<string>/Users/markomitranic/Sites/personal/giferator/src/vendor</string>
 	</array>
 	<key>Creator</key>
 	<string>Platypus-5.4.1</string>
@@ -55,7 +55,7 @@
 	<key>ScriptArgs</key>
 	<array/>
 	<key>ScriptPath</key>
-	<string>/Users/markomitranic/Sites/noa/tivoli-giferator/src/giferator.sh</string>
+	<string>/Users/markomitranic/Sites/personal/giferator/src/giferator.sh</string>
 	<key>SendNotifications</key>
 	<false/>
 	<key>StatusItemDisplayType</key>
