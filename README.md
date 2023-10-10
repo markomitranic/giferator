@@ -5,7 +5,8 @@ This project was created in 2017 for Catena Media, and later updated in 2023 for
 I tend to forget how it works, so I wrote an explainer a while ago [Compressing animated gifs in PHP](https://medium.com/homullus/compressing-animated-gifs-with-php-e26e655ec3e0)
 
 ![Original Garder](test/Garder.gif?raw=true)
-![Original Garder](test/Garder.gif?raw=true){:height="36px" width="36px"}
+
+<img src="test/Garder.gif?raw=true" width="250"/>
 
 | Original                                    | Optimised  |
 | ------------------------------------------- | ---------- | ------------------------------------------------------ | ----------------------------- |
