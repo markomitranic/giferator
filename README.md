@@ -2,7 +2,7 @@
 
 A drag-and-drop macOS app for quickly optimising GIF's en-masse to a set of hardcoded media standards, using FFMpeg, Gifsicle and ImageOptim.
 
-![Giferator Screenshot](test/giferator-readme-intro.png?raw=true)
+<img src="test/giferator-readme-intro.png?raw=true" width="400" alt="Giferator App Screenshot"/>
 
 This project was created in 2017 for Catena Media, and later updated in 2023 for NoA Ignite Denmark, as an easy way for designers to resize and optimize Gifs used in products.
 
