@@ -4,9 +4,14 @@ This project was created in 2017 for Catena Media, and later updated in 2023 for
 
 I tend to forget how it works, so I wrote an explainer a while ago [Compressing animated gifs in PHP](https://medium.com/homullus/compressing-animated-gifs-with-php-e26e655ec3e0)
 
-| Original                                    | Optimised                    |
-| ------------------------------------------- | ---------------------------- | ------------------------------------------------------ | ----------------------------- |
-| ![Original Garder](test/Garder.gif?raw=true | width=400 "Original Garder") | ![Optimised Garder](test/giferated/Garder.gif?raw=true | width=150 "Optimised Garder") |
+![Original Garder](test/Garder.gif?raw=true | width=400)
+![Original Garder](test/Garder.gif?raw=true | width=400 "Test")
+![Original Garder](test/Garder.gif?raw=true)
+![Original Garder](https://raw.githubusercontent.com/markomitranic/giferator/c1e8cf22d7537267bbf8c53bbca991f4045781e4/test/giferated/Garder.gif)
+
+| Original                                    | Optimised  |
+| ------------------------------------------- | ---------- | ------------------------------------------------------ | ----------------------------- |
+| ![Original Garder](test/Garder.gif?raw=true | width=400) | ![Optimised Garder](test/giferated/Garder.gif?raw=true | width=150 "Optimised Garder") |
 
 ## Usage
 
