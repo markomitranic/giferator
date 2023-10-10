@@ -8,11 +8,14 @@ This project was created in 2017 for Catena Media, and later updated in 2023 for
 
 I tend to forget how it works, so I wrote an explainer a while ago [Compressing animated gifs in PHP](https://medium.com/homullus/compressing-animated-gifs-with-php-e26e655ec3e0)
 
-| Original                                          | Optimised                                                       |
-| ------------------------------------------------- | --------------------------------------------------------------- |
-| [test/Garder.gif](test/Garder.gif?raw=true)       | [test/giferated/Garder.gif](test/giferated/Garder.gif?raw=true) |
-| 1024 x 1024 @ 30fps (898kb)                       | 308 x 308 @ 15fps (104kb)                                       |
-| <img src="test/Garder.gif?raw=true" width="400"/> | <img src="test/giferated/Garder.gif?raw=true" width="150"/>     |
+| Original                                                    | Optimised                                                                 |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------- |
+| [test/Garder.gif](test/Garder.gif?raw=true)                 | [test/giferated/Garder.gif](test/giferated/Garder.gif?raw=true)           |
+| 1024 x 1024 @ 30fps (898kb)                                 | 308 x 308 @ 15fps (104kb)                                                 |
+| <img src="test/Garder.gif?raw=true" width="400"/>           | <img src="test/giferated/Garder.gif?raw=true" width="150"/>               |
+| [test/Garder.gif](test/Ein Cowboy Bebop.gif?raw=true)       | [test/giferated/Garder.gif](test/giferated/Ein Cowboy Bebop.gif?raw=true) |
+| 1044 x 800 @ 4fps (715kb)                                   | 308 x 308 @ 4fps (57kb)                                                   |
+| <img src="test/Ein Cowboy Bebop.gif?raw=true" width="400"/> | <img src="test/giferated/Ein Cowboy Bebop.gif?raw=true" width="150"/>     |
 
 ## Usage
 
