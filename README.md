@@ -1,6 +1,6 @@
 # Giferator
 
-A drag-and-drop macOS app for quickly optimising GIF's en-masse to a set of hardcoded media standards, using FFMpeg, Gifsicle and ImageOptim.
+A drag-and-drop macOS app for quickly optimising GIFs en-masse to a set of hardcoded media standards, using FFMpeg, Gifsicle and ImageOptim.
 
 <img src="test/giferator-readme-intro.png?raw=true" width="400" alt="Giferator App Screenshot"/>
 
