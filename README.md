@@ -23,7 +23,7 @@ The application offers no interface and contains hardcoded output profiles. For 
 
 Once you start the app, you can drag and drop any gif, image or video file, and it will automatically be compressed.
 
-The gifs will be output into a new `./giferated` folder, using a descriptive suffix like `__308w_12fps_128c.gif`. It will automatically overwrite older versions if they exist. Application is dependency free, so it can be directly copied to your Applications folder.
+The gifs will be output into a new `./giferated` folder, using human-readable profile suffixes like `__low-motion.gif` or `__large.gif`. It will automatically overwrite older versions if they exist. Application is dependency free, so it can be directly copied to your Applications folder.
 
 ## Compression
 
@@ -35,12 +35,17 @@ Both Gifsicle level 3 and ImageOptim are used for final compression and metadata
 
 The default profiles are conservative-to-aggressive to help compare quality vs size:
 
-- tiny: 220w @ 6fps, 64 colors
-- small: 260w @ 8fps, 96 colors
-- medium: 308w @ 12fps, 128 colors
-- large: 400w @ 15fps, 256 colors
+| Name/label | Specs | Expected effect |
+| --- | --- | --- |
+| tiny | 220w, 6fps, 64 colors; dither=bayer; lossy=60 | Very small footprint; choppier motion and potential banding; good for small UI/icons and low-detail clips |
+| small | 260w, 8fps, 96 colors; dither=bayer; lossy=50 | Small file size; mild choppiness; good for small thumbnails |
+| medium | 308w, 12fps, 128 colors; dither=bayer; lossy=40 | Balanced default; good quality/size tradeoff |
+| large | 400w, 15fps, 256 colors; dither=bayer; lossy=30 | Higher fidelity; smoother motion and more colors; larger size |
+| floyd-steinberg | 308w, 12fps, 128 colors; dither=floyd_steinberg; lossy=40 | Crisper edges via error diffusion; grain-like appearance; preserves detail; size ~ medium |
+| low-motion | 308w, 8fps, 128 colors; dither=bayer; lossy=40 | Optimized for low-motion clips; significant size cut with minimal perceptual loss |
+| noise-removal | 308w, 12fps, 128 colors; dither=bayer; lossy=40; denoise=hqdn3d | Reduces noise/grain crawl; smaller files; can slightly soften textures |
 
-Each uses FFMpeg palettegen/paletteuse with Bayer dithering and Gifsicle `-O3` with mild lossy quantization.
+Each profile uses FFMpeg palettegen/paletteuse with the listed dithering and Gifsicle `-O3` with mild lossy quantization. The `noise-removal` profile applies `hqdn3d` denoising before palette generation.
 
 # Development
 

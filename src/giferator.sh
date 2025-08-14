@@ -26,25 +26,33 @@ mkdir -p "$OUTPUT_DIR"
 OUTPUT_FILENAME="$(basename "${INPUT_FILE_PATH}")"
 BASE_NAME="${OUTPUT_FILENAME%.*}"
 
-# Define output profiles: label|fps|width|max_colors|dither|lossy
+# Define output profiles: label|fps|width|max_colors|dither|lossy|denoise
 PROFILES="
-tiny|6|220|64|bayer|60
-small|8|260|96|bayer|50
-medium|12|308|128|bayer|40
-large|15|400|256|bayer|30
+tiny|6|220|64|bayer|60|0
+small|8|260|96|bayer|50|0
+medium|12|308|128|bayer|40|0
+large|15|400|256|bayer|30|0
+floyd-steinberg|12|308|128|floyd_steinberg|40|0
+low-motion|8|308|128|bayer|40|0
+noise-removal|12|308|128|bayer|40|1
 "
 
 PRODUCED_FILES=""
 
-while IFS='|' read -r label FPS SIZE_PIXELS MAX_COLORS DITHER LOSSY; do
+while IFS='|' read -r label FPS SIZE_PIXELS MAX_COLORS DITHER LOSSY DENOISE_FLAG; do
 	[ -z "$label" ] && continue
 	PALETTE_FILE="$TEMP_DIR/${label}_palette.png"
 	FFMPEG_FILE="$TEMP_DIR/${label}_ffmpeg.gif"
 	GIFSICLE_FILE="$TEMP_DIR/${label}_gifsicle.gif"
-	OUTPUT_FILE_PATH="${OUTPUT_DIR}/${BASE_NAME}__${SIZE_PIXELS}w_${FPS}fps_${MAX_COLORS}c.gif"
+	OUTPUT_FILE_PATH="${OUTPUT_DIR}/${label}.gif"
 
-	ffmpeg -y -i "$INPUT_FILE_PATH" -vf fps=$FPS,scale=$SIZE_PIXELS:-1:flags=lanczos,palettegen=max_colors=$MAX_COLORS:stats_mode=diff "$PALETTE_FILE"
-	ffmpeg -y -i "$INPUT_FILE_PATH" -i "$PALETTE_FILE" -filter_complex "fps=$FPS,scale=$SIZE_PIXELS:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=${DITHER}" "$FFMPEG_FILE"
+	CHAIN="fps=$FPS,scale=$SIZE_PIXELS:-1:flags=lanczos"
+	if [ "${DENOISE_FLAG}" = "1" ]; then
+		CHAIN="$CHAIN,hqdn3d=1.5:1.5:6:6"
+	fi
+
+	ffmpeg -y -i "$INPUT_FILE_PATH" -vf "$CHAIN,palettegen=max_colors=$MAX_COLORS:stats_mode=diff" "$PALETTE_FILE"
+	ffmpeg -y -i "$INPUT_FILE_PATH" -i "$PALETTE_FILE" -filter_complex "$CHAIN[x];[x][1:v]paletteuse=dither=${DITHER}" "$FFMPEG_FILE"
 	# Use gifsicle with strong optimization and optional lossy quantization if supported
 	$gifsicle -O3 --lossy=$LOSSY "$FFMPEG_FILE" -o "$GIFSICLE_FILE" 2>/dev/null || $gifsicle -O3 "$FFMPEG_FILE" -o "$GIFSICLE_FILE"
 	$imageoptim "$GIFSICLE_FILE"
