@@ -38,6 +38,7 @@ noise-removal|12|308|128|bayer|40|1
 "
 
 PRODUCED_FILES=""
+MANIFEST_BODY=""
 
 while IFS='|' read -r label FPS SIZE_PIXELS MAX_COLORS DITHER LOSSY DENOISE_FLAG; do
 	[ -z "$label" ] && continue
@@ -58,6 +59,33 @@ while IFS='|' read -r label FPS SIZE_PIXELS MAX_COLORS DITHER LOSSY DENOISE_FLAG
 	$imageoptim "$GIFSICLE_FILE"
 	cp "$GIFSICLE_FILE" "$OUTPUT_FILE_PATH"
 	PRODUCED_FILES="$PRODUCED_FILES\n$OUTPUT_FILE_PATH"
+
+	# Build manifest row
+	if [ "${DENOISE_FLAG}" = "1" ]; then
+		DENOISE_TEXT="yes"
+	else
+		DENOISE_TEXT="no"
+	fi
+	SPECS="${SIZE_PIXELS}w, ${FPS}fps, ${MAX_COLORS} colors; dither=${DITHER}; lossy=${LOSSY}; denoise=${DENOISE_TEXT}"
+	case "$label" in
+		tiny)
+			EFFECT="Very small footprint; choppier motion and potential banding; good for small UI/icons and low-detail clips" ;;
+		small)
+			EFFECT="Small file size; mild choppiness; good for small thumbnails" ;;
+		medium)
+			EFFECT="Balanced default; good quality/size tradeoff" ;;
+		large)
+			EFFECT="Higher fidelity; smoother motion and more colors; larger size" ;;
+		floyd-steinberg)
+			EFFECT="Crisper edges via error diffusion; grain-like appearance; preserves detail; size ~ medium" ;;
+		low-motion)
+			EFFECT="Optimized for low-motion clips; significant size cut with minimal perceptual loss" ;;
+		noise-removal)
+			EFFECT="Reduces noise/grain crawl; smaller files; can slightly soften textures" ;;
+		*)
+			EFFECT="Variant tuned for different balance of motion smoothness and color detail" ;;
+	esac
+    MANIFEST_BODY="$MANIFEST_BODY\n$label\nSpecs: $SPECS\nEffect: $EFFECT\n"
 done <<EOF
 $PROFILES
 EOF
@@ -65,6 +93,21 @@ EOF
 # Reveal output directory in Finder and bring to front
 osascript -e "tell application \"Finder\" to reveal POSIX file \"$OUTPUT_DIR\""
 osascript -e "tell application \"Finder\" to activate"
+
+# Write manifest TXT to output folder and echo it to terminal
+MANIFEST_TEXT_PATH="$OUTPUT_DIR/manifest.txt"
+{
+	echo "Giferator Profiles"
+	echo ""
+	echo "The files in this folder are generated variants of your GIF with different tradeoffs."
+	echo ""
+	echo "$(printf "%b" "$MANIFEST_BODY")"
+} > "$MANIFEST_TEXT_PATH"
+
+echo ""
+echo "Profiles Manifest"
+echo ""
+cat "$MANIFEST_TEXT_PATH"
 
 # Pretty-print debug information
 printf "\n***************
