@@ -5,13 +5,14 @@ set -eu
 
 # If no arguments are supplied
 if [ $# -eq 0 ]; then
-	echo "No arguments supplied!"
+	echo "No video file supplied! Usage: ./giferator.sh <video_file>"
+	echo "Supported formats: MOV, MP4, AVI, WEBM, etc."
 	exit
 fi
 
 # If supplied file does not exist
 if [ ! -f "$1" ]; then
-	echo "File not found!"
+	echo "Video file not found: $1"
 	exit
 fi
 
@@ -86,9 +87,10 @@ osascript -e "tell application \"Finder\" to activate"
 # Write manifest TXT to output folder and echo it to terminal
 MANIFEST_TEXT_PATH="$OUTPUT_DIR/manifest.txt"
 {
-	echo "Giferator Profiles"
+	echo "Video to GIF Conversion Results"
 	echo ""
-	echo "The files in this folder are generated variants of your GIF with different tradeoffs."
+	echo "The GIF files in this folder are generated from your video with different quality/compression tradeoffs."
+	echo "Each profile offers different balance of file size vs visual quality."
 	echo ""
 	echo "$(printf "%b" "$MANIFEST_BODY")"
 } > "$MANIFEST_TEXT_PATH"
@@ -100,13 +102,16 @@ cat "$MANIFEST_TEXT_PATH"
 
 # Pretty-print debug information
 printf "\n***************
-Gifsicle: $($gifsicle --version | head -n 1)
-FFMpeg: $(ffmpeg -version | head -n 1)
-ImageOptim: $(defaults read $(realpath $imageoptim/../../Info.plist) CFBundleVersion)
+Video to GIF Conversion Complete!
+
+Tools Used:
+	Gifsicle: $($gifsicle --version | head -n 1)
+	FFMpeg: $(ffmpeg -version | head -n 1)
+	ImageOptim: $(defaults read $(realpath $imageoptim/../../Info.plist) CFBundleVersion)
 
 Configuration:
-	Input Arguments: $1
+	Input Video: $1
 	Input File Path: $INPUT_FILE_PATH
 	Output Dir: $OUTPUT_DIR
-	Output Files: $PRODUCED_FILES
+	GIF Files Created: $PRODUCED_FILES
 \n***************\n"

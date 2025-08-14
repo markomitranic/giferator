@@ -1,35 +1,48 @@
 # Giferator
 
-A drag-and-drop macOS app for quickly optimising GIFs en-masse to a set of hardcoded media standards, using FFMpeg, Gifsicle and ImageOptim. It now exports multiple variants per input so designers can pick the best tradeoff. [Download macOS app (Universal)](https://github.com/markomitranic/giferator/releases/latest/download/Giferator.app.zip)
+A CLI tool for converting video files to optimized GIFs with multiple quality profiles, using FFMpeg, Gifsicle and ImageOptim. It exports multiple variants per input so designers can pick the best tradeoff. Originally a drag-and-drop macOS app, now primarily used as a command-line tool.
 
 <img src="test/giferator-readme-intro.png?raw=true" width="400" alt="Giferator App Screenshot"/>
 
-This project was created in 2017 for Catena Media, and later updated in 2023 for NoA Ignite Denmark, as an easy way for designers to resize and optimize Gifs used in products.
+This project was created in 2017 for Catena Media, and later updated in 2023 for NoA Ignite Denmark, as an easy way for designers to convert videos to optimized GIFs used in products.
 
 I tend to forget how it works, so I wrote an explainer a while ago [Compressing animated gifs in PHP](https://medium.com/homullus/compressing-animated-gifs-with-php-e26e655ec3e0)
 
-| Original                                                          | Optimised                                                                             |
+| Original Video/GIF                                                | Converted to Optimized GIF                                                           |
 | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| [test/Garder.gif](test/Garder.gif?raw=true)                       | [test/giferated/Garder.gif](test/giferated/Garder.gif?raw=true)                       |
-| 1024 x 1024 @ 30fps (898kb)                                       | 288 x 288 @ 15fps (104kb)                                                             |
-| <img src="test/Garder.gif?raw=true" width="400"/>                 | <img src="test/giferated/Garder.gif?raw=true" width="150"/>                           |
-| [test/Ein Cowboy Bebop.gif](<test/Ein Cowboy Bebop.gif?raw=true>) | [test/giferated/Ein Cowboy Bebop.gif](<test/giferated/Ein Cowboy Bebop.gif?raw=true>) |
-| 1044 x 800 @ 4fps (715kb)                                         | 288 x 288 @ 4fps (57kb)                                                               |
-| <img src="test/Ein Cowboy Bebop.gif?raw=true" width="400"/>       | <img src="test/giferated/Ein Cowboy Bebop.gif?raw=true" width="150"/>                 |
+| [test/Garder.gif](test/Garder.gif?raw=true)                       | [test/giferated/4-balanced.gif](test/giferated/4-balanced.gif?raw=true)             |
+| 1024 x 1024 @ 30fps (898kb)                                       | 288 x 288 @ 12fps (104kb)                                                            |
+| <img src="test/Garder.gif?raw=true" width="400"/>                 | <img src="test/giferated/4-balanced.gif?raw=true" width="150"/>                      |
+| [test/Ein Cowboy Bebop.gif](<test/Ein Cowboy Bebop.gif?raw=true>) | [test/giferated/4-balanced.gif](<test/giferated/4-balanced.gif?raw=true>)           |
+| 1044 x 800 @ 4fps (715kb)                                         | 288 x 288 @ 12fps (57kb)                                                             |
+| <img src="test/Ein Cowboy Bebop.gif?raw=true" width="400"/>       | <img src="test/giferated/4-balanced.gif?raw=true" width="150"/>                      |
 
 ## Usage
 
-The application offers no interface and contains hardcoded output profiles. For each input, it will generate several variants differing by FPS, max width and color count. Profiles can be edited in `src/giferator.sh`.
+The tool is designed to convert video files to multiple optimized GIF variants. It contains hardcoded output profiles that generate several variants differing by FPS, compression level, and color count. Profiles can be edited in `src/giferator.sh`.
 
-Once you start the app, you can drag and drop any gif, image or video file, and it will automatically be compressed.
+Run the tool from command line with a video file:
 
-The gifs will be output into a new `./giferated` folder, using numbered tier-based profile names like `1-aggressive-plus.gif`, `4-balanced.gif` or `6-quality.gif`. Files are automatically sorted from smallest to largest. It will automatically overwrite older versions if they exist. Application is dependency free, so it can be directly copied to your Applications folder.
+```bash
+cd src
+./giferator.sh path/to/your/video.mov
+```
 
-## Compression
+Supported input formats: MOV, MP4, AVI, WEBM, and other video formats supported by FFmpeg.
 
-Compression algorhythm uses a few steps in order to make image smaller without changing the quality.
-Via FFMPEG, static frames are made transparent and a per-variant color palette is calculated.
-Both Gifsicle level 3 and ImageOptim are used for final compression and metadata removal.
+The GIFs will be output into a new `./giferated` folder, using numbered tier-based profile names like `1-aggressive-plus.gif`, `4-balanced.gif` or `6-quality.gif`. Files are automatically sorted from smallest to largest. It will automatically overwrite older versions if they exist.
+
+## Video to GIF Conversion Process
+
+The conversion algorithm optimizes video files into multiple GIF variants using a multi-step process:
+
+1. **Video Processing**: FFmpeg extracts frames at target frame rate and scales to 288px width
+2. **Palette Generation**: FFmpeg analyzes video content to create optimal color palettes for each profile
+3. **GIF Creation**: FFmpeg applies palettes with specified dithering methods (Bayer or Floyd-Steinberg)
+4. **Optimization**: Gifsicle applies level 3 optimization and lossy compression
+5. **Final Polish**: ImageOptim removes metadata and applies additional compression
+
+This multi-stage approach ensures the best possible quality/size ratio for each profile tier.
 
 ### Default Profiles
 
@@ -57,11 +70,11 @@ Each profile uses FFMpeg palettegen/paletteuse with the listed dithering and Gif
 
 # Development
 
-The easiest way to use it during development is to invoke the shell script directly:
+The easiest way to use it during development is to invoke the shell script directly with a video file:
 
 ```shell
 $ cd src
-$ ./giferator.sh ../test/Himmelskibet.gif
+$ ./giferator.sh ../test/sample-video.mov
 ```
 
 This allows us to change the script on-the-fly. Alternatively we can build the application every time we make a change, or use Platypus' option "Bundle as symlinks" during export, but that is still experimental.
