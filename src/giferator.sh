@@ -15,7 +15,6 @@ if [ ! -f "$1" ]; then
 	exit
 fi
 
-ffmpeg=./vendor/ffmpeg
 gifsicle=./vendor/gifsicle
 imageoptim=./vendor/ImageOptim.app/Contents/MacOS/ImageOptim
 TEMP_DIR="./tmp"
@@ -25,35 +24,49 @@ INPUT_FILE_PATH=$(realpath "${1}")
 OUTPUT_DIR="$(dirname "${INPUT_FILE_PATH}")/giferated"
 mkdir -p "$OUTPUT_DIR"
 OUTPUT_FILENAME="$(basename "${INPUT_FILE_PATH}")"
-touch "${OUTPUT_DIR}/${OUTPUT_FILENAME}"
-OUTPUT_FILE_PATH=$(realpath "${OUTPUT_DIR}/${OUTPUT_FILENAME}")
+BASE_NAME="${OUTPUT_FILENAME%.*}"
 
-FPS="15"
-SIZE_PIXELS="308"
+# Define output profiles: label|fps|width|max_colors|dither|lossy
+PROFILES="
+tiny|6|220|64|bayer|60
+small|8|260|96|bayer|50
+medium|12|308|128|bayer|40
+large|15|400|256|bayer|30
+"
 
-$ffmpeg -y -i "$INPUT_FILE_PATH" -vf fps=$FPS,scale=$SIZE_PIXELS:-1:flags=lanczos,palettegen "$TEMP_DIR/palette.png"
-$ffmpeg -i "$INPUT_FILE_PATH" -i "$TEMP_DIR/palette.png" -filter_complex "fps=$FPS,scale=$SIZE_PIXELS:-1:flags=lanczos[x];[x][1:v] paletteuse=" "$TEMP_DIR/ffmpeg.gif"
-$gifsicle -O3 "$TEMP_DIR/ffmpeg.gif" -o "$TEMP_DIR/gifsicle.gif"
-$imageoptim "$TEMP_DIR/gifsicle.gif"
+PRODUCED_FILES=""
 
-# Output resulting file
-cp "$TEMP_DIR/gifsicle.gif" "$OUTPUT_FILE_PATH"
+while IFS='|' read -r label FPS SIZE_PIXELS MAX_COLORS DITHER LOSSY; do
+	[ -z "$label" ] && continue
+	PALETTE_FILE="$TEMP_DIR/${label}_palette.png"
+	FFMPEG_FILE="$TEMP_DIR/${label}_ffmpeg.gif"
+	GIFSICLE_FILE="$TEMP_DIR/${label}_gifsicle.gif"
+	OUTPUT_FILE_PATH="${OUTPUT_DIR}/${BASE_NAME}__${SIZE_PIXELS}w_${FPS}fps_${MAX_COLORS}c.gif"
 
-# Open the folder in Finder and select the file, bring Finder to the front
-osascript -e "tell application \"Finder\" to reveal POSIX file \"$OUTPUT_FILE_PATH\""
+	ffmpeg -y -i "$INPUT_FILE_PATH" -vf fps=$FPS,scale=$SIZE_PIXELS:-1:flags=lanczos,palettegen=max_colors=$MAX_COLORS:stats_mode=diff "$PALETTE_FILE"
+	ffmpeg -y -i "$INPUT_FILE_PATH" -i "$PALETTE_FILE" -filter_complex "fps=$FPS,scale=$SIZE_PIXELS:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=${DITHER}" "$FFMPEG_FILE"
+	# Use gifsicle with strong optimization and optional lossy quantization if supported
+	$gifsicle -O3 --lossy=$LOSSY "$FFMPEG_FILE" -o "$GIFSICLE_FILE" 2>/dev/null || $gifsicle -O3 "$FFMPEG_FILE" -o "$GIFSICLE_FILE"
+	$imageoptim "$GIFSICLE_FILE"
+	cp "$GIFSICLE_FILE" "$OUTPUT_FILE_PATH"
+	PRODUCED_FILES="$PRODUCED_FILES\n$OUTPUT_FILE_PATH"
+done <<EOF
+$PROFILES
+EOF
+
+# Reveal output directory in Finder and bring to front
+osascript -e "tell application \"Finder\" to reveal POSIX file \"$OUTPUT_DIR\""
 osascript -e "tell application \"Finder\" to activate"
 
 # Pretty-print debug information
 printf "\n***************
 Gifsicle: $($gifsicle --version | head -n 1)
-FFMpeg: $($ffmpeg -version | head -n 1)
+FFMpeg: $(ffmpeg -version | head -n 1)
 ImageOptim: $(defaults read $(realpath $imageoptim/../../Info.plist) CFBundleVersion)
 
 Configuration:
 	Input Arguments: $1
 	Input File Path: $INPUT_FILE_PATH
 	Output Dir: $OUTPUT_DIR
-	Output Filename: $OUTPUT_FILENAME
-	Output File Path: $OUTPUT_FILE_PATH
-	Quality: $SIZE_PIXELS x $SIZE_PIXELS @ $FPS
+	Output Files: $PRODUCED_FILES
 \n***************\n"

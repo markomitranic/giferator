@@ -1,6 +1,6 @@
 # Giferator
 
-A drag-and-drop macOS app for quickly optimising GIFs en-masse to a set of hardcoded media standards, using FFMpeg, Gifsicle and ImageOptim. [Download macOS app (Universal)](https://github.com/markomitranic/giferator/releases/latest/download/Giferator.app.zip)
+A drag-and-drop macOS app for quickly optimising GIFs en-masse to a set of hardcoded media standards, using FFMpeg, Gifsicle and ImageOptim. It now exports multiple variants per input so designers can pick the best tradeoff. [Download macOS app (Universal)](https://github.com/markomitranic/giferator/releases/latest/download/Giferator.app.zip)
 
 <img src="test/giferator-readme-intro.png?raw=true" width="400" alt="Giferator App Screenshot"/>
 
@@ -19,17 +19,28 @@ I tend to forget how it works, so I wrote an explainer a while ago [Compressing 
 
 ## Usage
 
-The application offers no interface and contains hardcoded variables for `FPS` and `SIZE_PIXELS` which can be manually customised.
+The application offers no interface and contains hardcoded output profiles. For each input, it will generate several variants differing by FPS, max width and color count. Profiles can be edited in `src/giferator.sh`.
 
 Once you start the app, you can drag and drop any gif, image or video file, and it will automatically be compressed.
 
-The gif will be output into a new `./giferated` folder, with the same filename. It will automatically overwrite older versions of the file if they exist. Application is dependency free, so it can be directly copied to your Applications folder.
+The gifs will be output into a new `./giferated` folder, using a descriptive suffix like `__308w_12fps_128c.gif`. It will automatically overwrite older versions if they exist. Application is dependency free, so it can be directly copied to your Applications folder.
 
 ## Compression
 
 Compression algorhythm uses a few steps in order to make image smaller without changing the quality.
-Via FFMPEG, static frames are made transparent, a color palette is calculated for each gif separately.
+Via FFMPEG, static frames are made transparent and a per-variant color palette is calculated.
 Both Gifsicle level 3 and ImageOptim are used for final compression and metadata removal.
+
+### Default Profiles
+
+The default profiles are conservative-to-aggressive to help compare quality vs size:
+
+- tiny: 220w @ 6fps, 64 colors
+- small: 260w @ 8fps, 96 colors
+- medium: 308w @ 12fps, 128 colors
+- large: 400w @ 15fps, 256 colors
+
+Each uses FFMpeg palettegen/paletteuse with Bayer dithering and Gifsicle `-O3` with mild lossy quantization.
 
 # Development
 
@@ -37,7 +48,7 @@ The easiest way to use it during development is to invoke the shell script direc
 
 ```shell
 $ cd src
-$ ./giferator.sh ../demo/Himmelskibet.gif
+$ ./giferator.sh ../test/Himmelskibet.gif
 ```
 
 This allows us to change the script on-the-fly. Alternatively we can build the application every time we make a change, or use Platypus' option "Bundle as symlinks" during export, but that is still experimental.
