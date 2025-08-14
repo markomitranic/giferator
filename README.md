@@ -11,10 +11,10 @@ I tend to forget how it works, so I wrote an explainer a while ago [Compressing 
 | Original                                                          | Optimised                                                                             |
 | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | [test/Garder.gif](test/Garder.gif?raw=true)                       | [test/giferated/Garder.gif](test/giferated/Garder.gif?raw=true)                       |
-| 1024 x 1024 @ 30fps (898kb)                                       | 308 x 308 @ 15fps (104kb)                                                             |
+| 1024 x 1024 @ 30fps (898kb)                                       | 288 x 288 @ 15fps (104kb)                                                             |
 | <img src="test/Garder.gif?raw=true" width="400"/>                 | <img src="test/giferated/Garder.gif?raw=true" width="150"/>                           |
 | [test/Ein Cowboy Bebop.gif](<test/Ein Cowboy Bebop.gif?raw=true>) | [test/giferated/Ein Cowboy Bebop.gif](<test/giferated/Ein Cowboy Bebop.gif?raw=true>) |
-| 1044 x 800 @ 4fps (715kb)                                         | 308 x 308 @ 4fps (57kb)                                                               |
+| 1044 x 800 @ 4fps (715kb)                                         | 288 x 288 @ 4fps (57kb)                                                               |
 | <img src="test/Ein Cowboy Bebop.gif?raw=true" width="400"/>       | <img src="test/giferated/Ein Cowboy Bebop.gif?raw=true" width="150"/>                 |
 
 ## Usage
@@ -23,7 +23,7 @@ The application offers no interface and contains hardcoded output profiles. For 
 
 Once you start the app, you can drag and drop any gif, image or video file, and it will automatically be compressed.
 
-The gifs will be output into a new `./giferated` folder, using human-readable profile suffixes like `__low-motion.gif` or `__large.gif`. It will automatically overwrite older versions if they exist. Application is dependency free, so it can be directly copied to your Applications folder.
+The gifs will be output into a new `./giferated` folder, using numbered tier-based profile names like `1-aggressive-plus.gif`, `4-balanced.gif` or `6-quality.gif`. Files are automatically sorted from smallest to largest. It will automatically overwrite older versions if they exist. Application is dependency free, so it can be directly copied to your Applications folder.
 
 ## Compression
 
@@ -33,19 +33,27 @@ Both Gifsicle level 3 and ImageOptim are used for final compression and metadata
 
 ### Default Profiles
 
-The default profiles are conservative-to-aggressive to help compare quality vs size:
+The default profiles use a standardized 288px width and are organized into 3 tiers based on compression/quality tradeoffs. Files are numbered for proper sorting (smallest to largest):
 
+**Tier 1 - Aggressive Compression:**
 | Name/label | Specs | Expected effect |
 | --- | --- | --- |
-| tiny | 220w, 6fps, 64 colors; dither=bayer; lossy=60 | Very small footprint; choppier motion and potential banding; good for small UI/icons and low-detail clips |
-| small | 260w, 8fps, 96 colors; dither=bayer; lossy=50 | Small file size; mild choppiness; good for small thumbnails |
-| medium | 308w, 12fps, 128 colors; dither=bayer; lossy=40 | Balanced default; good quality/size tradeoff |
-| large | 400w, 15fps, 256 colors; dither=bayer; lossy=30 | Higher fidelity; smoother motion and more colors; larger size |
-| floyd-steinberg | 308w, 12fps, 128 colors; dither=floyd_steinberg; lossy=40 | Crisper edges via error diffusion; grain-like appearance; preserves detail; size ~ medium |
-| low-motion | 308w, 8fps, 128 colors; dither=bayer; lossy=40 | Optimized for low-motion clips; significant size cut with minimal perceptual loss |
-| noise-removal | 308w, 12fps, 128 colors; dither=bayer; lossy=40; denoise=hqdn3d | Reduces noise/grain crawl; smaller files; can slightly soften textures |
+| 1-aggressive-plus | 288w, 6fps, 64 colors; dither=bayer; lossy=60 | Maximum compression; smallest file size; reduced colors and frame rate; some motion choppiness and color banding |
+| 2-aggressive | 288w, 8fps, 96 colors; dither=bayer; lossy=50 | High compression; small file size with slightly better colors and motion than aggressive-plus |
 
-Each profile uses FFMpeg palettegen/paletteuse with the listed dithering and Gifsicle `-O3` with mild lossy quantization. The `noise-removal` profile applies `hqdn3d` denoising before palette generation.
+**Tier 2 - Balanced (with specialized alternatives):**
+| Name/label | Specs | Expected effect |
+| --- | --- | --- |
+| 3-balanced-low-motion | 288w, 4fps, 128 colors; dither=bayer; lossy=40 | Balanced quality optimized for static content; ultra-low frame rate with good colors for maximum size savings |
+| 4-balanced | 288w, 12fps, 128 colors; dither=bayer; lossy=40 | Balanced default; good quality/size tradeoff with moderate colors and smooth motion |
+| 5-balanced-crisp | 288w, 12fps, 128 colors; dither=floyd_steinberg; lossy=40 | Balanced quality with alternative dithering; crisper edges and fine detail preservation using Floyd-Steinberg |
+
+**Tier 3 - High Quality:**
+| Name/label | Specs | Expected effect |
+| --- | --- | --- |
+| 6-quality | 288w, 15fps, 256 colors; dither=bayer; lossy=30 | High quality; maximum colors and smoothest motion; largest file size but best visual fidelity |
+
+Each profile uses FFMpeg palettegen/paletteuse with the listed dithering and Gifsicle `-O3` with mild lossy quantization.
 
 # Development
 

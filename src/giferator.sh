@@ -26,21 +26,20 @@ mkdir -p "$OUTPUT_DIR"
 OUTPUT_FILENAME="$(basename "${INPUT_FILE_PATH}")"
 BASE_NAME="${OUTPUT_FILENAME%.*}"
 
-# Define output profiles: label|fps|width|max_colors|dither|lossy|denoise
+# Define output profiles: label|fps|width|max_colors|dither|lossy
 PROFILES="
-tiny|6|220|64|bayer|60|0
-small|8|260|96|bayer|50|0
-medium|12|308|128|bayer|40|0
-large|15|400|256|bayer|30|0
-floyd-steinberg|12|308|128|floyd_steinberg|40|0
-low-motion|8|308|128|bayer|40|0
-noise-removal|12|308|128|bayer|40|1
+1-aggressive-plus|6|288|64|bayer|60
+2-aggressive|8|288|96|bayer|50
+3-balanced-low-motion|4|288|128|bayer|40
+4-balanced|12|288|128|bayer|40
+5-balanced-crisp|12|288|128|floyd_steinberg|40
+6-quality|15|288|256|bayer|30
 "
 
 PRODUCED_FILES=""
 MANIFEST_BODY=""
 
-while IFS='|' read -r label FPS SIZE_PIXELS MAX_COLORS DITHER LOSSY DENOISE_FLAG; do
+while IFS='|' read -r label FPS SIZE_PIXELS MAX_COLORS DITHER LOSSY; do
 	[ -z "$label" ] && continue
 	PALETTE_FILE="$TEMP_DIR/${label}_palette.png"
 	FFMPEG_FILE="$TEMP_DIR/${label}_ffmpeg.gif"
@@ -48,9 +47,6 @@ while IFS='|' read -r label FPS SIZE_PIXELS MAX_COLORS DITHER LOSSY DENOISE_FLAG
 	OUTPUT_FILE_PATH="${OUTPUT_DIR}/${label}.gif"
 
 	CHAIN="fps=$FPS,scale=$SIZE_PIXELS:-1:flags=lanczos"
-	if [ "${DENOISE_FLAG}" = "1" ]; then
-		CHAIN="$CHAIN,hqdn3d=1.5:1.5:6:6"
-	fi
 
 	ffmpeg -y -i "$INPUT_FILE_PATH" -vf "$CHAIN,palettegen=max_colors=$MAX_COLORS:stats_mode=diff" "$PALETTE_FILE"
 	ffmpeg -y -i "$INPUT_FILE_PATH" -i "$PALETTE_FILE" -filter_complex "$CHAIN[x];[x][1:v]paletteuse=dither=${DITHER}" "$FFMPEG_FILE"
@@ -61,29 +57,22 @@ while IFS='|' read -r label FPS SIZE_PIXELS MAX_COLORS DITHER LOSSY DENOISE_FLAG
 	PRODUCED_FILES="$PRODUCED_FILES\n$OUTPUT_FILE_PATH"
 
 	# Build manifest row
-	if [ "${DENOISE_FLAG}" = "1" ]; then
-		DENOISE_TEXT="yes"
-	else
-		DENOISE_TEXT="no"
-	fi
-	SPECS="${SIZE_PIXELS}w, ${FPS}fps, ${MAX_COLORS} colors; dither=${DITHER}; lossy=${LOSSY}; denoise=${DENOISE_TEXT}"
+	SPECS="${SIZE_PIXELS}w, ${FPS}fps, ${MAX_COLORS} colors; dither=${DITHER}; lossy=${LOSSY}"
 	case "$label" in
-		tiny)
-			EFFECT="Very small footprint; choppier motion and potential banding; good for small UI/icons and low-detail clips" ;;
-		small)
-			EFFECT="Small file size; mild choppiness; good for small thumbnails" ;;
-		medium)
-			EFFECT="Balanced default; good quality/size tradeoff" ;;
-		large)
-			EFFECT="Higher fidelity; smoother motion and more colors; larger size" ;;
-		floyd-steinberg)
-			EFFECT="Crisper edges via error diffusion; grain-like appearance; preserves detail; size ~ medium" ;;
-		low-motion)
-			EFFECT="Optimized for low-motion clips; significant size cut with minimal perceptual loss" ;;
-		noise-removal)
-			EFFECT="Reduces noise/grain crawl; smaller files; can slightly soften textures" ;;
+		1-aggressive-plus)
+			EFFECT="Maximum compression; smallest file size; reduced colors and frame rate; some motion choppiness and color banding" ;;
+		2-aggressive)
+			EFFECT="High compression; small file size with slightly better colors and motion than aggressive-plus" ;;
+		3-balanced-low-motion)
+			EFFECT="Balanced quality optimized for static content; ultra-low frame rate with good colors for maximum size savings" ;;
+		4-balanced)
+			EFFECT="Balanced default; good quality/size tradeoff with moderate colors and smooth motion" ;;
+		5-balanced-crisp)
+			EFFECT="Balanced quality with alternative dithering; crisper edges and fine detail preservation using Floyd-Steinberg" ;;
+		6-quality)
+			EFFECT="High quality; maximum colors and smoothest motion; largest file size but best visual fidelity" ;;
 		*)
-			EFFECT="Variant tuned for different balance of motion smoothness and color detail" ;;
+			EFFECT="Custom profile with specific quality/compression balance" ;;
 	esac
     MANIFEST_BODY="$MANIFEST_BODY\n$label\nSpecs: $SPECS\nEffect: $EFFECT\n"
 done <<EOF
